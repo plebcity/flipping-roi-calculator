@@ -45,7 +45,11 @@ data class Recipe(
 
 data class Ingredient(
     val id: Int,
-    val quantity: Int
+    val quantity: Int,
+    val subText: String?,
+    val cost: Double,
+    val notes: String?,
+    val text: String?
 )
 
 data class RecipeData(
@@ -53,8 +57,14 @@ data class RecipeData(
     val output: Map<CombinedData, Int>,
     val input: Map<CombinedData, Int>,
     val roi: Double = calculateRoi(output.entries.sumOf { it.key.highPrice * it.value }, input.entries.sumOf { it.key.lowPrice * it.value }),
-    val margin: Double = output.entries.sumOf { it.key.highPrice * it.value } - input.entries.sumOf { it.key.lowPrice * it.value } - (output.entries.sumOf { it.key.highPrice * it.value }/100),
-    val potentialProfit: Double = input.entries.ifEmpty { null }?.minOf { minOf(it.key.limit / it.value, it.key.volume.toInt()) }?.let { it * margin } ?: (margin * output.entries.sumOf { it.key.volume })
+    val margin: Double = output.entries.sumOf { it.key.highPrice * 0.98 * it.value } - input.entries.sumOf { it.key.lowPrice * it.value },
+    val potentialProfit: Double =
+            input.entries
+                .ifEmpty { null }
+                ?.filter { it.value > 0 }
+                ?.minOf { minOf(it.key.limit / it.value, it.key.volume.toInt()) }
+                ?.let { it * margin }
+                ?: (margin * output.entries.sumOf { it.key.volume })
 )
 
 data class Potion(
@@ -72,8 +82,8 @@ data class PotionData(
     val dose3: CombinedData,
     val dose4: CombinedData,
     val roi: Double = calculateRoi(dose4.highPrice, (dose3.lowPrice/3)*4),
-    val margin: Double = dose4.highPrice - (dose3.lowPrice/3)*4,
-    val potentialProfit: Double = (dose3.limit/4) * 3 * margin
+    val margin: Double = (dose4.highPrice * 0.98) - (dose3.lowPrice/3)*4,
+    val potentialProfit: Double = ((dose3.limit/4) * 3 * margin)
 )
 
 fun calculateRoi(highPrice: Double, lowPrice: Double): Double =
