@@ -18,7 +18,7 @@ fun main() {
         }
     }
 
-    val amountOfCoinsAvailable = 14_000_000
+    val amountOfCoinsAvailable = 15_000_000
 
 
     runBlocking {
@@ -36,20 +36,20 @@ fun main() {
                     latestMapping.firstOrNull { it.id == sortedSet.key.toInt() }?.name,
                     (latestVolumesData.data[sortedSet.key] ?: 0),
                     latestMapping.firstOrNull { it.id == sortedSet.key.toInt() }?.limit?.takeIf { it > 0 } ?: floor(
-                        amountOfCoinsAvailable / sortedSet.value.low
+                        amountOfCoinsAvailable / sortedSet.value.low.toDouble()
                     ).toInt(),
                     sortedSet.value.roi,
                     sortedSet.value.low,
                     sortedSet.value.high
                 )
-            }.filter { it.name != null } + CombinedData(995, "coins", 0, Int.MAX_VALUE, 0.0, 1.0, 1.0)
+            }.filter { it.name != null } + CombinedData(995, "coins", 0, Int.MAX_VALUE, 0.0, 1, 1)
 
         println(
             combinedDataOfAllItems
                 .asSequence()
                 .sortedByDescending {
                     minOf(
-                        floor(amountOfCoinsAvailable / it.lowPrice),
+                        floor(amountOfCoinsAvailable / it.lowPrice.toDouble()),
                         it.limit.toDouble()
                     ) * (it.highPrice - it.lowPrice) - (it.highPrice / 100)
                 }
@@ -58,7 +58,7 @@ fun main() {
                 .joinToString(separator = "") {
                     "$it - potentialProfit=${((it.limit * (it.highPrice * 0.98 - it.lowPrice)))}, usableProfit=${
                         ((minOf(
-                            floor(amountOfCoinsAvailable / it.lowPrice),
+                            floor(amountOfCoinsAvailable / it.lowPrice.toDouble()),
                             it.limit.toDouble()
                         ) * (it.highPrice * 0.98 - it.lowPrice)))
                     }\n"
@@ -84,6 +84,7 @@ fun main() {
                 .filter { it.roi > 3 }
                 .filter { it.output.all { it.key.lowPrice > 150_000 && it.key.volume > 30L } }
                 .filter { it.input.all { it.key.volume > 15L } }
+                .filter { it.input.entries.sumOf { (key, value) -> key.lowPrice * value } < amountOfCoinsAvailable }
                 .joinToString("\n")
         )
 

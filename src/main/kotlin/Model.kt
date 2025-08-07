@@ -3,9 +3,9 @@ data class PriceData(
 )
 
 data class Price(
-    val high: Double,
+    val high: Long,
     val highTime: Long,
-    val low: Double,
+    val low: Long,
     val lowTime: Long,
     val roi: Double = calculateRoi(high, low)
 )
@@ -33,9 +33,13 @@ data class CombinedData(
     val volume: Long,
     val limit: Int,
     val roi: Double,
-    val lowPrice: Double,
-    val highPrice: Double
-)
+    val lowPrice: Long,
+    val highPrice: Long
+) {
+    override fun toString(): String {
+        return "$name, lowPrice: $lowPrice, highPrice: $highPrice, volume: $volume, limit: $limit"
+    }
+}
 
 data class Recipe(
     val name: String,
@@ -57,15 +61,19 @@ data class RecipeData(
     val output: Map<CombinedData, Int>,
     val input: Map<CombinedData, Int>,
     val roi: Double = calculateRoi(output.entries.sumOf { it.key.highPrice * it.value }, input.entries.sumOf { it.key.lowPrice * it.value }),
-    val margin: Double = output.entries.sumOf { it.key.highPrice * 0.98 * it.value } - input.entries.sumOf { it.key.lowPrice * it.value },
-    val potentialProfit: Double =
+    val margin: Long = (output.entries.sumOf { it.key.highPrice * 0.98 * it.value } - input.entries.sumOf { it.key.lowPrice * it.value }).toLong(),
+    val potentialProfit: Long =
             input.entries
                 .ifEmpty { null }
                 ?.filter { it.value > 0 }
                 ?.minOf { minOf(it.key.limit / it.value, it.key.volume.toInt()) }
                 ?.let { it * margin }
                 ?: (margin * output.entries.sumOf { it.key.volume })
-)
+) {
+    override fun toString(): String {
+        return "$recipeName | potentialProfit: $potentialProfit, margin: $margin \n\r\tinput: ${input.entries.joinToString("") { "\n\r\t\t${it.value}x ${it.key}" }} \n\r\toutput: ${output.entries.joinToString("") { "\n\r\t\t${it.value}x ${it.key}" }} \n\r"
+    }
+}
 
 data class Potion(
     val name: String,
@@ -84,7 +92,11 @@ data class PotionData(
     val roi: Double = calculateRoi(dose4.highPrice, (dose3.lowPrice/3)*4),
     val margin: Double = (dose4.highPrice * 0.98) - (dose3.lowPrice/3)*4,
     val potentialProfit: Double = ((dose3.limit/4) * 3 * margin)
-)
+) {
+    override fun toString(): String {
+        return "$potionName | potentialProfit: $potentialProfit, margin: $margin \n\r\tdose3: ($dose3) \n\r\tdose4: ($dose4) \n\r"
+    }
+}
 
-fun calculateRoi(highPrice: Double, lowPrice: Double): Double =
-    ((highPrice / lowPrice) - 1) * 100
+fun calculateRoi(highPrice: Long, lowPrice: Long): Double =
+    ((highPrice.toDouble() / lowPrice) - 1) * 100
