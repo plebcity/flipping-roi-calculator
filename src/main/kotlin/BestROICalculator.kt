@@ -53,7 +53,10 @@ fun main() {
                         it.limit.toDouble()
                     ) * (it.highPrice - it.lowPrice) - (it.highPrice / 100)
                 }
-                .filter { (it.lowPrice > 500_000 && it.volume > 50L) || (it.lowPrice > 100 && it.volume > 50_000L) }
+                .filter {
+                    (it.lowPrice > 500_000 && it.volume > 50L) ||
+                            (it.lowPrice > 100 && it.volume > 50_000L)
+                }
                 .filter { it.roi > 2 }
                 .joinToString(separator = "") {
                     "$it - potentialProfit=${((it.limit * (it.highPrice * 0.98 - it.lowPrice)))}, usableProfit=${
@@ -85,6 +88,7 @@ fun main() {
                 .filter { it.output.all { it.key.lowPrice > 150_000 && it.key.volume > 30L } }
                 .filter { it.input.all { it.key.volume > 15L } }
                 .filter { it.input.entries.sumOf { (key, value) -> key.lowPrice * value } < amountOfCoinsAvailable }
+                .filter { it.potentialProfit > 200_000 }
                 .joinToString("\n")
         )
 
@@ -104,6 +108,7 @@ fun main() {
                 .sortedByDescending { it.potentialProfit }
                 .filter { it.roi > 2 }
                 .filter { it.dose3.volume > 100_000 }
+                .filter { it.potentialProfit > 200_000 }
                 .joinToString("\n")
         )
 

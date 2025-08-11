@@ -66,9 +66,9 @@ data class RecipeData(
             input.entries
                 .ifEmpty { null }
                 ?.filter { it.value > 0 }
-                ?.minOf { minOf(it.key.limit / it.value, it.key.volume.toInt()) }
+                ?.minOf { minOf(it.key.limit / it.value, it.key.volume.toInt()/24) }
                 ?.let { it * margin }
-                ?: (margin * output.entries.sumOf { it.key.volume })
+                ?: (margin * output.entries.sumOf { it.key.volume/24 })
 ) {
     override fun toString(): String {
         return "$recipeName | potentialProfit: $potentialProfit, margin: $margin \n\r\tinput: ${input.entries.joinToString("") { "\n\r\t\t${it.value}x ${it.key}" }} \n\r\toutput: ${output.entries.joinToString("") { "\n\r\t\t${it.value}x ${it.key}" }} \n\r"
